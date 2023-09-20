@@ -252,7 +252,9 @@ class Macro {
 				EMeta({ name : m, params : params == null ? [] : [for( p in params ) convert(p)], pos : mpos }, convert(esub));
 			case ECheckType(e, t):
 				ECheckType(convert(e), convertType(t));
-		}, pos : #if (!macro && hscriptPos) { file : p.file, min : e.pmin, max : e.pmax } #else p #end }
+			default: 
+				null;
+		}, pos : #if hscriptPos { file : p.file, min : e.pmin, max : e.pmax } #else p #end }
 	}
 
 }

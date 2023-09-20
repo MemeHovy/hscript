@@ -1003,7 +1003,7 @@ class Checker {
 			default:
 				return TAnon([for( f in fl ) { t : typeExpr(f.e, Value), opt : false, name : f.name }]);
 			}
-		case EBreak, EContinue:
+		case EBreak, EContinue, EImport(_):
 			return TVoid;
 		case EReturn(v):
 			var et = v == null ? TVoid : typeExpr(v, allowReturn == null ? Value : WithType(allowReturn));
@@ -1249,6 +1249,7 @@ class Checker {
 				mergeType( typeExpr(defaultExpr, withType), defaultExpr);
 			return withType == NoValue ? TVoid : tmin == null ? makeMono() : tmin;
 		case ENew(cl, params):
+		default:
 		}
 		error("Don't know how to type "+edef(expr).getName(), expr);
 		return TDynamic;

@@ -114,6 +114,25 @@ class Printer {
 			return;
 		}
 		switch( #if hscriptPos e.e #else e #end ) {
+		case EImport(c, n):
+			add("import " + c);
+			if(n != null)
+				add(' as $n');
+		case EClass(name, fields, extend, interfaces):
+			add('class $name');
+			if (extend != null)
+				add(' extends $extend');
+			for(_interface in interfaces) {
+				add(' implements $_interface');
+			}
+			add(' {\n');
+			tabs += "\t";
+			//for(field in fields) {
+			//	expr(field);
+			//}
+
+			tabs = tabs.substr(1);
+			add("}");
 		case EConst(c):
 			switch( c ) {
 			case CInt(i): add(i);
@@ -122,7 +141,7 @@ class Printer {
 			}
 		case EIdent(v):
 			add(v);
-		case EVar(n, t, e):
+		case EVar(n, t, e): // TODO: static, public, override
 			add("var " + n);
 			addType(t);
 			if( e != null ) {
@@ -145,9 +164,9 @@ class Printer {
 				tabs = tabs.substr(1);
 				add("}");
 			}
-		case EField(e, f):
+		case EField(e, f, s):
 			expr(e);
-			add("." + f);
+			add((s == true ? "?." : ".") + f);
 		case EBinop(op, e1, e2):
 			expr(e1);
 			add(" " + op + " ");
@@ -207,7 +226,7 @@ class Printer {
 			add("break");
 		case EContinue:
 			add("continue");
-		case EFunction(params, e, name, ret):
+		case EFunction(params, e, name, ret): // TODO: static, public, override
 			add("function");
 			if( name != null )
 				add(" " + name);
@@ -234,7 +253,7 @@ class Printer {
 			add("[");
 			expr(index);
 			add("]");
-		case EArrayDecl(el):
+		case EArrayDecl(el, _):
 			add("[");
 			var first = true;
 			for( e in el ) {
@@ -331,7 +350,7 @@ class Printer {
 
 	public static function errorToString( e : Expr.Error ) {
 		var message = switch( #if hscriptPos e.e #else e #end ) {
-			case EInvalidChar(c): "Invalid character: '"+(StringTools.isEof(c) ? "EOF" : String.fromCharCode(c))+"' ("+c+")";
+			case EInvalidChar(c): "Invalid character: '"+(StringTools.isEof(c) ? "EOF (End Of File)" : String.fromCharCode(c))+"' ("+c+")";
 			case EUnexpected(s): "Unexpected token: \""+s+"\"";
 			case EUnterminatedString: "Unterminated string";
 			case EUnterminatedComment: "Unterminated comment";
@@ -341,6 +360,8 @@ class Printer {
 			case EInvalidOp(op): "Invalid operator: "+op;
 			case EInvalidAccess(f): "Invalid access to field " + f;
 			case ECustom(msg): msg;
+			case EInvalidClass(cla): "Invalid class: " + cla + " was not found.";
+			case EAlreadyExistingClass(cla): 'Custom Class named $cla already exists.';
 		};
 		#if hscriptPos
 		return e.origin + ":" + e.line + ": " + message;
